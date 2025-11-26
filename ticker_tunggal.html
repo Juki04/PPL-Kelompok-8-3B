@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ticker Harga Kripto (CoinMarketCap)</title>
+<style>
+ body{font-family:Arial, sans-serif;background:#f5f6fa;margin:0;padding:20px;} 
+ .box{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.08);} 
+ h2{margin-top:0;} 
+ label{font-size:14px;font-weight:600;} 
+ select,input{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid #ddd;} 
+ button{padding:10px 14px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-size:15px;margin-top:10px;cursor:pointer;} 
+ #result{margin-top:20px;padding:16px;background:#eef2ff;border-radius:10px;display:none;} 
+ .price{font-size:26px;font-weight:bold;margin-top:10px;} 
+ .meta{display:flex;gap:12px;margin-top:12px;} 
+ .meta div{background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);} 
+ .pos{color:#16a34a;} .neg{color:#dc2626;} 
+</style>
+</head>
+<body>
+<div class="box">
+<h2>Ticker Harga Tunggal (CoinMarketCap)</h2>
+<form onsubmit="return false;">
+ <label>Simbol Kripto</label>
+ <select id="symbol">
+   <option value="BTC">BTC - Bitcoin</option>
+   <option value="ETH">ETH - Ethereum</option>
+   <option value="BNB">BNB - BNB Chain</option>
+   <option value="SOL">SOL - Solana</option>
+   <option value="XRP">XRP</option>
+   <option value="ADA">ADA</option>
+   <option value="DOGE">DOGE</option>
+   <option value="TRX">TRX</option>
+ </select>
+
+ <label style="margin-top:10px;display:block;">Konversi Ke</label>
+ <select id="convert">
+   <option value="USD">USD</option>
+   <option value="IDR">IDR</option>
+   <option value="EUR">EUR</option>
+ </select>
+
+ <button onclick="fetchPrice()">Ambil Harga</button>
+</form>
+
+<div id="result">
+ <div id="name"></div>
+ <div id="price" class="price"></div>
+ <div id="marketcap"></div>
+ <div class="meta">
+   <div><b>1h</b> <div id="c1h"></div></div>
+   <div><b>24h</b> <div id="c24h"></div></div>
+   <div><b>7d</b> <div id="c7d"></div></div>
+ </div>
+</div>
+</div>
+
+<script>
+function nature(n){return Math.abs(n)>=1e9?(n/1e9).toFixed(2)+'B':Math.abs(n)>=1e6?(n/1e6).toFixed(2)+'M':n.toLocaleString();}
+
+async function fetchPrice(){
+ let symbol=document.getElementById("symbol").value;
+ let convert=document.getElementById("convert").value;
+
+ let url=`proxy.php?symbol=${symbol}&convert=${convert}`;
+
+ try{
+   let r=await fetch(url);
+   let j=await r.json();
+
+   let d=j.data[symbol];
+   let q=d.quote[convert];
+
+   document.getElementById("result").style.display="block";
+   document.getElementById("name").innerHTML=`<b>${d.name} (${d.symbol})</b>`;
+   document.getElementById("price").innerHTML=q.price.toLocaleString('id-ID',{style:'currency',currency:convert});
+   document.getElementById("marketcap").innerHTML="Market Cap: "+nature(q.market_cap);
+
+   document.getElementById("c1h").innerHTML=`<span class='${q.percent_change_1h>=0?'pos':'neg'}'>${q.percent_change_1h.toFixed(2)}%</span>`;
+   document.getElementById("c24h").innerHTML=`<span class='${q.percent_change_24h>=0?'pos':'neg'}'>${q.percent_change_24h.toFixed(2)}%</span>`;
+   document.getElementById("c7d").innerHTML=`<span class='${q.percent_change_7d>=0?'pos':'neg'}'>${q.percent_change_7d.toFixed(2)}%</span>`;
+
+ }catch(e){alert("Gagal mengambil data: "+e);}  }
+</script>
+</body>
+</html>
