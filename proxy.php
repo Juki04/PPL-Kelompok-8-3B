@@ -7,6 +7,48 @@
 // =================================================================
 // Ubah ini dengan CMC API Key Anda
 $CMC_API_KEY = 'eeb2e201e0724df3ad2c245315ba1d39'; 
+if (isset($_GET['convert']) && $_GET['convert'] == "true") {
+    header("Content-Type: application/json");
+
+    $symbol = $_GET['symbol']; // BTC, ETH, dll
+    $amount = floatval($_GET['amount']); 
+    $to = $_GET['to']; // USD atau IDR
+
+    $endpoint = "/v1/cryptocurrency/quotes/latest?symbol=$symbol";
+    $url = $BASE_URL . $endpoint;
+
+    $headers = [
+        "X-CMC_PRO_API_KEY: " . API_KEY,
+        "Accepts: application/json"
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    // Ambil harga USD
+    $priceUSD = $data['data'][$symbol]['quote']['USD']['price'];
+
+    // Konversi
+    if ($to == "USD") {
+        $result = $amount * $priceUSD;
+    } elseif ($to == "IDR") {
+        $result = $amount * $priceUSD * 16000;
+    }
+
+    echo json_encode([
+        "amount" => $amount,
+        "symbol" => $symbol,
+        "to" => $to,
+        "result" => $result
+    ]);
+    exit();
+}
 $BASE_URL = 'https://pro-api.coinmarketcap.com';
 // Waktu cache data dalam detik. 60 detik = 1 menit (Sesuai dengan Update Frequency CMC)
 $CACHE_DURATION = 60; 
