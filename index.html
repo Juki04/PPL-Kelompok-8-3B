@@ -71,13 +71,40 @@
         <h2>🛠️ Modul 3: Tabel Market Pilihan (Tugas Teman 2)</h2>
         <p>Area ini akan diisi dengan tabel data yang menampilkan daftar aset pilihan (BTC, ETH, SOL, dll.) dan harga Bid/Ask. (Belum diimplementasikan)</p>
     </section>
+<section id="modul-4">
+    <h2>✅ Modul 4: Konversi Mata Uang (Tugas Teman 3)</h2>
 
     <section id="info-umum">
-        <h2>🛠️ Modul 4: Konversi Mata Uang (Tugas Teman 3)</h2>
-        <p>Area ini akan diisi dengan fitur untuk mengonversi nilai satu aset ke aset lain menggunakan endpoint konversi CMC. (Belum diimplementasikan)</p>
-    </section>
+        
+
+
+    <div class="converter-box">
+        <label>Jumlah:</label>
+        <input type="number" id="convert-amount" placeholder="Masukkan jumlah">
+
+        <label>Dari Aset:</label>
+        <select id="convert-from">
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+            <option value="BNB">BNB</option>
+        </select>
+
+        <label>Ke Mata Uang:</label>
+        <select id="convert-to">
+            <option value="USD">USD</option>
+            <option value="IDR">IDR</option>
+        </select>
+
+        <button onclick="convertCrypto()">Konversi</button>
+
+        <p id="convert-result"></p>
+    </div>
+</section>
+
 
     <script src="script.js"></script>
     
+<script src="konversi-mata-uang.js"></script>
+
 </body>
 </html>
