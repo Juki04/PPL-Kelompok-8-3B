@@ -1,9 +1,9 @@
 // =================================================================
-// 💰 Modul 1: script.js (Client-Side Fetcher)
+// 💰 Modul 1: script.js (Client-Side Fetcher) - FINAL CLEAN VERSION
 // =================================================================
 
 // ⚠️ KONFIGURASI XAMPP LOKAL: GANTI JIKA PERLU!
-// Ganti 'rest-client-project' dengan nama folder proyek Anda di htdocs
+// Ganti 'Kelompok-3' dengan nama folder proyek Anda di htdocs
 const PROJECT_FOLDER_NAME = 'Kelompok-3'; 
 const PROXY_URL = 'http://localhost/' + PROJECT_FOLDER_NAME + '/proxy.php'; 
 
@@ -29,10 +29,7 @@ async function checkProxyStatus() {
     const apiUrlElement = document.getElementById('api-url');
     const proofElement = document.getElementById('api-proof');
 
-    // Tampilkan URL proxy lokal yang dipanggil
     apiUrlElement.textContent = FULL_FETCH_URL; 
-
-    // Reset status tampilan
     statusElement.className = 'status-pending';
     statusElement.textContent = 'Menghubungi Proxy Lokal...';
     timeElement.textContent = 'Memuat...';
@@ -41,33 +38,42 @@ async function checkProxyStatus() {
     try {
         const response = await fetch(FULL_FETCH_URL);
         
-        // 1. Cek Status HTTP (misalnya 404 dari XAMPP atau 429 dari CMC via Proxy)
+        // 1. Cek Status HTTP (404 dari XAMPP, 429 dari CMC, dll.)
         if (!response.ok) {
-            throw new Error(`HTTP Error! Status: ${response.status} (${response.statusText})`);
+            // Coba baca body untuk error yang lebih spesifik jika ada
+            let errorMessage = `HTTP Error! Status: ${response.status} (${response.statusText})`;
+            try {
+                const errorData = await response.json();
+                if (errorData.status && errorData.status.error_message) {
+                    errorMessage = `CMC/Proxy Error: ${errorData.status.error_message}`;
+                }
+            } catch (e) {
+                // Jika tidak bisa di-parse sebagai JSON, gunakan status HTTP default
+            }
+            throw new Error(errorMessage);
         }
         
         const data = await response.json();
         
         // 2. Cek Status Cache (Header dari proxy.php)
-        const cacheStatus = response.headers.get('X-Cache-Status') || 'MISS/NEW';
+        const cacheStatus = response.headers.get('X-Cache-Status') || 'HIT/MISS';
 
-        // 3. Cek Error dari CMC (di dalam body JSON)
+        // 3. Cek Error CMC (di dalam body JSON, jika kode statusnya 200 tapi ada error CMC)
         if (data.status && data.status.error_code !== 0) {
-             throw new Error(`CMC Error: ${data.status.error_message} (Code: ${data.status.error_code})`);
+             throw new Error(`CMC Logic Error: ${data.status.error_message} (Code: ${data.status.error_code})`);
         }
 
         // --- BERHASIL ---
-        
-        // Update Status
         statusElement.className = 'status-success';
         statusElement.textContent = `TERHUBUNG & CACHING: ${cacheStatus}`;
         timeElement.textContent = `Data di-fetch pada: ${formatLocalTime()}`;
         
-        // Update Bukti Data CMC
         const assetCount = data.data.length;
-        const firstThreeAssets = data.data.slice(0, 3).map(asset => asset.symbol).join(', ');
+        // Kita hanya akan menampilkan aset yang Anda minta di awal
+        const targetSymbols = ['BTC', 'ETH', 'USDT', 'SOL', 'XRP', 'BNB', 'DOGE', 'USDC', 'TRON', 'LTC', 'AVAX'];
+        const foundSymbols = data.data.filter(asset => targetSymbols.includes(asset.symbol)).map(asset => asset.symbol);
         
-        proofElement.textContent = `Berhasil mengambil ${assetCount} aset! Contoh aset: ${firstThreeAssets}`;
+        proofElement.textContent = `Berhasil mengambil ${assetCount} aset. ${foundSymbols.length} dari 11 aset target Anda ditemukan: ${foundSymbols.slice(0, 5).join(', ')}${foundSymbols.length > 5 ? ', dll.' : '.'}`;
 
     } catch (error) {
         // --- GAGAL ---
@@ -79,7 +85,6 @@ async function checkProxyStatus() {
     }
 }
 
-// Panggil fungsi saat halaman dimuat dan tambahkan event listener
 document.addEventListener('DOMContentLoaded', () => {
     checkProxyStatus();
     const refreshButton = document.getElementById('refresh-button');

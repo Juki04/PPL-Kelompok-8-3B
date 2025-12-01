@@ -1,57 +1,57 @@
 <?php
 // =================================================================
-// 💰 Modul 1: PHP Proxy Caching (Mengatasi Rate Limit & API Key)
+// 💰 Modul 1: PHP Proxy Caching - FINAL CLEAN VERSION
+// Bertanggung jawab untuk mengatasi CORS, Rate Limit, dan API Key.
 // =================================================================
 
-// 1. KONFIGURASI CMC API KEY DAN CACHE
-// =================================================================
-// Ubah ini dengan CMC API Key Anda
+// ⚠️ KONFIGURASI CMC API KEY ⚠️
+// Ganti ini dengan CMC API Key Anda yang sebenarnya
 $CMC_API_KEY = 'eeb2e201e0724df3ad2c245315ba1d39'; 
 $BASE_URL = 'https://pro-api.coinmarketcap.com';
-// Waktu cache data dalam detik. 60 detik = 1 menit (Sesuai dengan Update Frequency CMC)
-$CACHE_DURATION = 60; 
+$CACHE_DURATION = 60; // Cache data selama 60 detik (1 menit)
 
-// 2. TENTUKAN ENDPOINT YANG DIMINTA
-// =================================================================
-// Secara default, kita akan mengambil data listing utama (digunakan Teman 2)
+// -----------------------------------------------------------------
+
+// 1. PENCEGAHAN OUTPUT RUSAK (Membantu mengatasi net::ERR_FAILED)
+// Memastikan tidak ada output sebelum header dikirim.
+ob_clean();
+header('Content-Type: application/json');
+
+// 2. TENTUKAN ENDPOINT DARI CLIENT
+// Default: Listing Utama (Digunakan untuk pengujian)
 $endpoint = '/v1/cryptocurrency/listings/latest'; 
 
-// Jika client (script.js) meminta endpoint lain melalui query parameter
 if (isset($_GET['endpoint']) && !empty($_GET['endpoint'])) {
     $endpoint = filter_var($_GET['endpoint'], FILTER_SANITIZE_URL);
 }
 
 // Tentukan nama file cache (berdasarkan endpoint yang diminta)
-$cache_file = 'cache/' . md5($endpoint) . '.json';
+$cache_dir = 'cache/';
+$cache_file = $cache_dir . md5($endpoint) . '.json';
 
 // Pastikan folder cache ada
-if (!is_dir('cache')) {
-    mkdir('cache', 0777, true);
+if (!is_dir($cache_dir)) {
+    mkdir($cache_dir, 0777, true);
 }
 
-// 3. LOGIKA CACHING: PERIKSA DATA YANG TERSIMPAN
-// =================================================================
+// 3. LOGIKA CACHING: PERIKSA DATA TERSIMPAN
 if (file_exists($cache_file) && (time() - filemtime($cache_file) < $CACHE_DURATION)) {
-    // KASUS 1: Cache masih berlaku (Belum 60 detik)
-    
-    // Set header agar browser tahu bahwa ini adalah JSON
-    header('Content-Type: application/json');
-    // Tambahkan header khusus untuk debugging (opsional)
+    // KASUS 1: Cache masih berlaku (HIT)
     header('X-Cache-Status: HIT'); 
-    
-    // Baca dan kirim data dari file cache
     echo file_get_contents($cache_file);
     exit;
 }
 
-// 4. LOGIKA FETCHING: AMBIL DATA BARU DARI CMC
-// =================================================================
-
-// URL lengkap ke CMC
+// 4. LOGIKA FETCHING: AMBIL DATA BARU DARI CMC (MISS)
 $url = $BASE_URL . $endpoint; 
 
-$curl = curl_init();
+// Pengecekan cURL (Untuk membantu debugging)
+if (!function_exists('curl_init')) {
+    http_response_code(500);
+    die(json_encode(['status' => ['error_code' => 9999, 'error_message' => 'PHP cURL extension is not enabled. Please check php.ini.']]));
+}
 
+$curl = curl_init();
 $headers = [
     'Accepts: application/json',
     'X-CMC_PRO_API_KEY: ' . $CMC_API_KEY
@@ -62,10 +62,7 @@ curl_setopt_array($curl, [
     CURLOPT_HTTPHEADER => $headers,
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_ENCODING => "",
-    CURLOPT_MAXREDIRS => 10,
     CURLOPT_TIMEOUT => 30,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => "GET"
 ]);
 
 $response = curl_exec($curl);
@@ -73,18 +70,16 @@ $err = curl_error($curl);
 curl_close($curl);
 
 // 5. KELOLA RESPON DAN SIMPAN KE CACHE
-// =================================================================
-header('Content-Type: application/json');
-
 if ($err) {
-    // KASUS 2: Terjadi Error pada cURL (jaringan atau API Key salah)
+    // KASUS 2: Error jaringan cURL
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'cURL Error: ' . $err]);
+    echo json_encode(['status' => ['error_code' => 9998, 'error_message' => 'cURL Network Error: ' . $err]]);
 } else {
     $data = json_decode($response, true);
     
+    // KASUS 3: Error dari CMC (misalnya Rate Limit 429 atau API Key Salah 1001)
     if (isset($data['status']['error_code']) && $data['status']['error_code'] !== 0) {
-        // KASUS 3: Error dari CMC (misalnya Rate Limit 429)
+        // Teruskan kode status CMC ke client
         http_response_code($data['status']['error_code']);
         echo $response;
     } else {
