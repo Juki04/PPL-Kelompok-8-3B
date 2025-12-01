@@ -6,19 +6,21 @@
     <select id="symbol" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;border:1px solid #ddd;">
         <option value="BTC">BTC - Bitcoin</option>
         <option value="ETH">ETH - Ethereum</option>
-        <option value="BNB">BNB</option>
-        <option value="SOL">SOL</option>
+        <option value="USDT">USDT - Tether</option>
+        <option value="SOL">SOL - Solana</option>
         <option value="XRP">XRP</option>
-        <option value="ADA">ADA</option>
+        <option value="BNB">BNB</option>
         <option value="DOGE">DOGE</option>
-        <option value="TRX">TRX</option>
+        <option value="USDC">USDC</option>
+        <option value="TRON">TRON</option>
+        <option value="LTC">LTC</option>
+        <option value="AVAX">AVAX</option>
     </select>
 
     <label style="margin-top:12px;display:block;">Konversi Ke</label>
     <select id="convert" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;border:1px solid #ddd;">
         <option value="USD">USD</option>
         <option value="IDR">IDR</option>
-        <option value="EUR">EUR</option>
     </select>
 
     <button onclick="fetchPrice()" style="margin-top:14px;padding:10px 14px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;">
@@ -64,50 +66,4 @@
     </div>
 </div>
 </div>
-
-<script>
-function nature(n){
-  return Math.abs(n)>=1e9?(n/1e9).toFixed(2)+'B'
-       :Math.abs(n)>=1e6?(n/1e6).toFixed(2)+'M'
-       :n.toLocaleString();
-}
-
-async function fetchPrice(){
-    let symbol = document.getElementById("symbol").value;
-    let convert = document.getElementById("convert").value;
-
-    let url = `proxy.php?symbol=${symbol}&convert=${convert}`;
-
-    try{
-        let r = await fetch(url);
-        let j = await r.json();
-
-        let d = j.data[symbol];
-        let q = d.quote[convert];
-
-        document.getElementById("result").style.display = "block";
-
-        document.getElementById("name").innerHTML = `${d.name} (${d.symbol})`;
-        document.getElementById("price").innerHTML = q.price.toLocaleString('id-ID',{style:'currency',currency:convert});
-        document.getElementById("marketcap").innerHTML = "Market Cap: " + nature(q.market_cap);
-
-        // Persentase
-        document.getElementById("c1h").innerHTML =
-            `<span style="color:${q.percent_change_1h>=0?'green':'red'}">${q.percent_change_1h.toFixed(2)}%</span>`;
-        document.getElementById("c24h").innerHTML =
-            `<span style="color:${q.percent_change_24h>=0?'green':'red'}">${q.percent_change_24h.toFixed(2)}%</span>`;
-        document.getElementById("c7d").innerHTML =
-            `<span style="color:${q.percent_change_7d>=0?'green':'red'}">${q.percent_change_7d.toFixed(2)}%</span>`;
-
-        // Statistik
-        document.getElementById("high24").innerHTML = q.high_24h ? q.high_24h.toLocaleString('id-ID',{style:'currency',currency:convert}) : "-";
-        document.getElementById("low24").innerHTML = q.low_24h ? q.low_24h.toLocaleString('id-ID',{style:'currency',currency:convert}) : "-";
-        document.getElementById("vol24").innerHTML = q.volume_24h ? nature(q.volume_24h) : "-";
-        document.getElementById("dom").innerHTML = d.cmc_rank + "%";
-        document.getElementById("rank").innerHTML = "#" + d.cmc_rank;
-
-    } catch(e){
-        alert("Gagal mengambil data: " + e);
-    }
-}
-</script>
+<script src="script.js"></script>
