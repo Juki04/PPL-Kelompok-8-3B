@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konversi Harga Crypto</title>
+    <style>
+        /* Gaya dasar */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        label { display: block; margin-top: 10px; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; margin-top: 20px; }
+        #result { margin-top: 20px; padding: 10px; border: 1px dashed #007bff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>💰 Alat Konversi Harga Cryptocurrency</h2>
+    
+    <label for="amount">Jumlah:</label>
+    <input type="number" id="amount" value="1" required>
+
+    <label for="symbol">Simbol Sumber (misal: BTC):</label>
+    <input type="text" id="symbol" value="BTC" required>
+
+    <label for="convert_to">Konversi ke (misal: USD, IDR, ETH):</label>
+    <input type="text" id="convert_to" value="USD" required>
+
+    <button onclick="convertPrice()">Konversi</button>
+
+    <div id="result">
+        Hasil Konversi akan muncul di sini.
+    </div>
+</div>
+
+<script>
+    function convertPrice() {
+        const amount = document.getElementById('amount').value;
+        const symbol = document.getElementById('symbol').value.toUpperCase();
+        const convert_to = document.getElementById('convert_to').value.toUpperCase();
+        const resultDiv = document.getElementById('result');
+        
+        // Cek input
+        if (!amount || !symbol || !convert_to) {
+            resultDiv.innerHTML = "Tolong lengkapi semua kolom.";
+            return;
+        }
+
+        resultDiv.innerHTML = "Memuat...";
+
+        // Panggil endpoint backend Anda sendiri
+        const apiUrl = `/v1/tools/price-conversion?amount=${amount}&symbol=${symbol}&convert=${convert_to}`;
+
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const convertedPrice = parseFloat(data.converted_price).toFixed(2);
+                resultDiv.innerHTML = `
+                    <p>Konversi dari ${data.amount} ${data.source_symbol}:</p>
+                    <h3>${convertedPrice} ${data.target_currency}</h3>
+                    <small>Data diperbarui pada: ${new Date(data.last_updated).toLocaleString()}</small>
+                `;
+            })
+            .catch(error => {
+                console.error('Error konversi:', error);
+                resultDiv.innerHTML = `Terjadi kesalahan saat konversi: ${error.message}. Periksa input atau log server.`;
+            });
+    }
+</script>
+
+<script src="konversi-mata-uang.js"></script>
+
+</body>
+</html>
