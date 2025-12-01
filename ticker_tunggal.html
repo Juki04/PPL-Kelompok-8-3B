@@ -1,0 +1,69 @@
+<div class="box" style="max-width:650px;margin:auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+<h2>Ticker Tunggal & Statistik</h2>
+
+<form onsubmit="return false;">
+    <label>Simbol Kripto</label>
+    <select id="symbol" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;border:1px solid #ddd;">
+        <option value="BTC">BTC - Bitcoin</option>
+        <option value="ETH">ETH - Ethereum</option>
+        <option value="USDT">USDT - Tether</option>
+        <option value="SOL">SOL - Solana</option>
+        <option value="XRP">XRP</option>
+        <option value="BNB">BNB</option>
+        <option value="DOGE">DOGE</option>
+        <option value="USDC">USDC</option>
+        <option value="TRON">TRON</option>
+        <option value="LTC">LTC</option>
+        <option value="AVAX">AVAX</option>
+    </select>
+
+    <label style="margin-top:12px;display:block;">Konversi Ke</label>
+    <select id="convert" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;border:1px solid #ddd;">
+        <option value="USD">USD</option>
+        <option value="IDR">IDR</option>
+    </select>
+
+    <button onclick="fetchPrice()" style="margin-top:14px;padding:10px 14px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;">
+        Ambil Harga
+    </button>
+</form>
+
+<div id="result" style="margin-top:20px;padding:16px;background:#eef2ff;border-radius:10px;display:none;">
+    <h3 id="name"></h3>
+    <div id="price" style="font-size:28px;font-weight:bold;margin-top:10px;"></div>
+    <div id="marketcap" style="margin-top:10px;"></div>
+
+    <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;">
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>1H</b><div id="c1h"></div>
+        </div>
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>24H</b><div id="c24h"></div>
+        </div>
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>7D</b><div id="c7d"></div>
+        </div>
+    </div>
+
+    <h3 style="margin-top:20px;">Statistik</h3>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>High 24H</b><div id="high24"></div>
+        </div>
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>Low 24H</b><div id="low24"></div>
+        </div>
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>Volume 24H</b><div id="vol24"></div>
+        </div>
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>Dominance</b><div id="dom"></div>
+        </div>
+        <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+            <b>Rank</b><div id="rank"></div>
+        </div>
+    </div>
+</div>
+</div>
+<script src="script.js"></script>
