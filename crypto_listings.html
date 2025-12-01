@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Daftar Cryptocurrency Terbaru</title>
+    <style>
+        /* CSS dasar untuk tabel */
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="crypto-listings-container">
+        <h2>📊 Daftar 11 Aset Cryptocurrency Teratas</h2>
+        <p id="loading-message">Memuat data...</p>
+        <table id="crypto-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nama</th>
+                    <th>Simbol</th>
+                    <th>Harga (USD)</th>
+                    <th>Perubahan 24 Jam</th>
+                    <th>Kapitalisasi Pasar</th>
+                </tr>
+            </thead>
+            <tbody id="crypto-table-body">
+                </tbody>
+        </table>
+        <p id="error-message" style="color: red; display: none;"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const endpoint = '/v1/cryptocurrency/listings/latest';
+            const targetSymbols = ["BTC", "ETH", "USDT", "SOL", "XRP", "BNB", "DOGE", "USDC", "TRON", "LTC", "AVAX"];
+            
+            const loadingMessage = document.getElementById('loading-message');
+            const cryptoTable = document.getElementById('crypto-table');
+            const tableBody = document.getElementById('crypto-table-body');
+            const errorMessage = document.getElementById('error-message');
+
+            fetch(endpoint)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Kesalahan HTTP! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loadingMessage.style.display = 'none';
+                    
+                    if (data && data.data && Array.isArray(data.data)) {
+                        // Filter data hanya untuk 11 simbol yang diminta
+                        const filteredData = data.data.filter(asset => targetSymbols.includes(asset.symbol));
+                        
+                        if (filteredData.length > 0) {
+                            // Urutkan berdasarkan urutan yang diminta (opsional, untuk konsistensi)
+                            const sortedData = targetSymbols
+                                .map(symbol => filteredData.find(asset => asset.symbol === symbol))
+                                .filter(asset => asset !== undefined); // Menghapus yang tidak ditemukan
+                            
+                            sortedData.forEach((asset, index) => {
+                                const quote = asset.quote.USD;
+                                const change24h = quote.percent_change_24h;
+                                
+                                const row = tableBody.insertRow();
+                                
+                                // Format angka untuk tampilan
+                                const priceFormatted = new Intl.NumberFormat('en-US', { 
+                                    style: 'currency', 
+                                    currency: 'USD',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: quote.price < 1 ? 6 : 2 // Lebih banyak desimal untuk harga sangat rendah
+                                }).format(quote.price);
+                                
+                                const changeFormatted = change24h.toFixed(2) + '%';
+                                const changeClass = change24h >= 0 ? 'positive' : 'negative';
+                                
+                                const marketCapFormatted = new Intl.NumberFormat('en-US', { 
+                                    style: 'currency', 
+                                    currency: 'USD', 
+                                    notation: 'compact',
+                                    compactDisplay: 'short'
+                                }).format(quote.market_cap);
+                                
+                                row.insertCell().textContent = index + 1; // #
+                                row.insertCell().textContent = asset.name; // Nama
+                                row.insertCell().textContent = asset.symbol; // Simbol
+                                row.insertCell().textContent = priceFormatted; // Harga
+                                row.insertCell().innerHTML = `<span class="${changeClass}">${changeFormatted}</span>`; // Perubahan 24 Jam
+                                row.insertCell().textContent = marketCapFormatted; // Kapitalisasi Pasar
+                            });
+
+                            cryptoTable.style.display = 'table';
+                        } else {
+                            errorMessage.textContent = 'Data untuk 11 aset yang diminta tidak ditemukan.';
+                            errorMessage.style.display = 'block';
+                        }
+                    } else {
+                        errorMessage.textContent = 'Format data dari proxy lokal tidak valid.';
+                        errorMessage.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    loadingMessage.style.display = 'none';
+                    errorMessage.textContent = `Gagal mengambil data: ${error.message}. Pastikan proxy lokal berjalan.`;
+                    errorMessage.style.display = 'block';
+                    console.error('Error fetching crypto data:', error);
+                });
+        });
+    </script>
+
+</body>
+</html>
